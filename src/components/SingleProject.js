@@ -53,6 +53,8 @@ function SingleProject() {
       .collection("projects")
       .doc(id)
       .update({
+        // at begin project.comments is empty ,so we have to spread comments to see future comments
+        // update in firebase for the current fetched single project
         comments: [...project.comments, commentToAdd],
       });
   };
