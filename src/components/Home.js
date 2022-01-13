@@ -5,6 +5,7 @@ import firebase from "firebase";
 import RenderList from "./RenderList";
 import Select from "react-select";
 
+// category option array for React-Select
 const categories = [
   { value: "development", label: "Development" },
   { value: "design", label: "Design" },
@@ -13,49 +14,54 @@ const categories = [
 ];
 
 function Home() {
+  const user = useSelector((state) => state.user.user);
+  // project form values
   const [project, setProject] = useState("");
   const [details, setDetails] = useState("");
   const [category, setCategory] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [assignedUsers, setAssignedUsers] = useState("");
+  const [assignedUsers, setAssignedUsers] = useState([]);
   const [optionsUser, setOptionsUsers] = useState("");
-  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [cancel, setCancel] = useState(false);
 
-  const user = useSelector((state) => state.user.user);
-  //   fetching users
+  const [data, setData] = useState([]);
+
+  // users collection was created when we signup,,to store the user in their correspoinding user id
+  //   fetching users from users collection for showing all the users
   useEffect(() => {
-    let unsub;
-    const fetchData = async () => {
-      unsub = await db.collection("users").onSnapshot((snapshot) => {
-        let results = [];
-        snapshot.docs.forEach((doc) => {
-          results.push({ ...doc.data(), id: doc.id });
-        });
-        setData(results);
+    const unsub = db.collection("users").onSnapshot((snapshot) => {
+      let results = [];
+      snapshot.docs.forEach((doc) => {
+        results.push({ ...doc.data(), id: doc.id });
       });
-    };
-    fetchData();
+      setData(results);
+    });
     return () => {
       unsub();
     };
   }, []);
   // console.log(data);
 
-  //   fetching the users from users db and setting as the options for dropdown for assigning users
+  //fetching the users from users db and setting the options for dropdown for assigning users
+  // react select requires object with values for {value:'',label:''}
+  // so we are setting those properties by looping the users (stored in state) collection
+  // this will run the component loads
   useEffect(() => {
     let newArr = [];
     newArr = data.map((user) => {
       return {
-        value: user,
+        value: user, //setting the whole user object as value for each user
         label: user.name,
       };
     });
     // console.log(newArr);
-
+    // setting the options array for assigned to dropdwon
     setOptionsUsers(newArr);
   }, [data]);
+
+  // console.log(assignedUsers);
+  // these will the values which will be selected from the assigned to dropdown having label and value
 
   //   submitting form
   const handleSubmit = async (e) => {
@@ -63,6 +69,10 @@ function Home() {
     setLoading(true);
     // console.log(dueDate, project, details, category, assignedUsers);
     try {
+      // taking out the required fields
+      // assignedUsers will be array of objects having label,value
+      // in which value will be the whole user object (line 55)
+      // so we are fetching the requied fields from user.value
       const assignedUsersList = assignedUsers.map((user) => {
         return {
           name: user.value.name,
@@ -70,20 +80,25 @@ function Home() {
           id: user.value.id,
         };
       });
+
+      // details for the current logged in user
       const createdBy = {
         name: user.name,
         photo: user.photo,
         id: user.uid,
       };
+
+      // store the details for the project in the projects collection
       await db.collection("projects").add({
         project,
         details,
-        category: category.value,
+        category: category.value, // category will be the object having label and value
         dueDate: firebase.firestore.Timestamp.fromDate(new Date(dueDate)),
-        comments: [],
-        assignedUsersList,
-        createdBy,
+        comments: [], //empty at creation of a new project
+        assignedUsersList, //array of the users to whom projects are assigned (name,photo,id)
+        createdBy, //current logged user can created projects
       });
+
       if (!cancel) {
         setDetails("");
         setProject("");
@@ -130,16 +145,16 @@ function Home() {
         <label>
           <span>category</span>
           <Select
-            onChange={(option) => setCategory(option)}
             options={categories}
+            onChange={(option) => setCategory(option)}
           />
         </label>
         <label>
           <span>Assign to</span>
           <Select
+            options={optionsUser}
             onChange={(option) => setAssignedUsers(option)}
             isMulti
-            options={optionsUser}
           />
         </label>
         <button> {loading ? "adding" : "add"}</button>

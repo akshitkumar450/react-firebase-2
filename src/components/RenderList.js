@@ -1,10 +1,6 @@
 import React from "react";
-import { db } from "../firebase";
 
 function RenderList({ data }) {
-  const handleDelete = async (id) => {
-    await db.collection("recipies").doc(id).delete();
-  };
   return (
     <div>
       <h3>All transactions</h3>
