@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { db } from "../firebase";
 
 function SingleProject() {
+  const history = useHistory();
   // fetching the id from url
   const { id } = useParams();
   const user = useSelector((state) => state.user.user);
@@ -59,6 +61,19 @@ function SingleProject() {
       });
   };
 
+  // we want to delete the project only if the current logged in user has created that specific project we want to delete
+  // we have stored the user info who was log in and had created  the project submit in home page
+  // we have store user info in createdBy object line 85 HOME page
+  // console.log(user.uid === project?.createdBy.id);
+
+  // we can made this syncronous because we dont want to wait untill it has deleted ,,it can be done it background
+  // we can use async await no problem with that
+
+  const handleClick = async () => {
+    await db.collection("projects").doc(id).delete();
+    history.push("/projects");
+  };
+
   return (
     <div>
       {project && (
@@ -107,6 +122,13 @@ function SingleProject() {
                 </li>
               ))}
           </ul>
+          {/*
+            we want to delete the specific fetched project by id if the current logged in user has created that project
+          and the user info was stored while creating the project in createdBy object in home page (line 85)
+          */}
+          {user.uid === project?.createdBy.id && (
+            <button onClick={handleClick}>DELETE</button>
+          )}
         </>
       )}
     </div>
