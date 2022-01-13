@@ -4,10 +4,12 @@ import { db } from "../firebase";
 
 function Projects() {
   const [data, setData] = useState([]);
+
+  // fetching all the projects from projects collection having all the data from project form (HOME page)
   useEffect(() => {
     let unsub;
     const fetchProjects = async () => {
-      unsub = await db.collection("projects").onSnapshot((snapshot) => {
+      unsub = db.collection("projects").onSnapshot((snapshot) => {
         let results = [];
         snapshot.docs.forEach((doc) => {
           results.push({ ...doc.data(), id: doc.id });
@@ -21,7 +23,8 @@ function Projects() {
     };
   }, []);
 
-  //   console.log(data);
+  // console.log(data);
+
   return (
     <div className="project-list">
       {data.length === 0 && <p>No projects yet!</p>}

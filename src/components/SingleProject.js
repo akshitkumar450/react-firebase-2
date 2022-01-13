@@ -4,11 +4,16 @@ import { useParams } from "react-router-dom";
 import { db } from "../firebase";
 
 function SingleProject() {
+  // fetching the id from url
   const { id } = useParams();
   const user = useSelector((state) => state.user.user);
 
   const [project, setProject] = useState(null);
   const [comment, setComment] = useState("");
+
+  // fetch the data for the corresponding id from firebase
+  // all the data which we have set in HOME page in handleSubmit fn
+  // IMP: it has empty array of comments at starting
   useEffect(() => {
     let unsub;
     const fetchProject = async () => {
@@ -26,19 +31,24 @@ function SingleProject() {
       unsub();
     };
   }, [id]);
-  //   console.log(id);
-  //   console.log(project);
+  // console.log(project);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     // saving info who has add the comment
     const commentToAdd = {
-      name: user.name,
-      photo: user.photo,
+      name: user.name, //current log in user
+      photo: user.photo, //current log in user
       comment,
       id: Math.random(),
     };
 
     setComment("");
+    // when we have submit the project form from HOME page we have set comments as empty array
+    // but now we can add the comment
+    // we have fetched the single project which have all the values which we have set in HOME page in handlesubmit fn ,,
+    // IMP:it also has empty comments array
+    // so we can update that comments array for the specific project which we have fetched by the id
     await db
       .collection("projects")
       .doc(id)
@@ -46,7 +56,7 @@ function SingleProject() {
         comments: [...project.comments, commentToAdd],
       });
   };
-  //   console.log(project);
+
   return (
     <div>
       {project && (
