@@ -1,10 +1,15 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { db } from "../firebase";
+import Filter from "./Filter";
 
 function Projects() {
   const [data, setData] = useState([]);
+  const [filter, setFilter] = useState("all");
 
+  const handleFilter = (filter) => {
+    setFilter(filter);
+  };
   // fetching all the projects from projects collection having all the data from project form (HOME page)
   useEffect(() => {
     let unsub;
@@ -27,6 +32,7 @@ function Projects() {
 
   return (
     <div className="project-list">
+      <Filter filter={filter} handleFilter={handleFilter} />
       {data.length === 0 && <p>No projects yet!</p>}
       {data.map((item) => (
         <Link to={`/projects/${item.id}`} key={item.id}>
